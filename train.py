@@ -226,7 +226,7 @@ def main():
     lambda_weight = 0.001
     use_immiscible = True
     gradient_clip = 1.0
-    epsilon_base = 5.0
+    epsilon_base = 1000
     epsilon = epsilon_base
     
     with tqdm(range(n_steps), dynamic_ncols=True) as pbar:
