@@ -311,6 +311,8 @@ def main():
           
             losses.append(loss.item())
             pbar.set_postfix({"loss": loss.item(), "grad_norm": grad_norm.item()})
+            experiment.log_metric("epsilon", epsilon, step=step)
+            experiment.log_metric("gibbs_weights", gibbs_weights.mean().item(), step=step)
             experiment.log_metric("loss", loss.item(), step=step)
             experiment.log_metric("grad_norm", grad_norm.item(), step=step)
             experiment.log_metric("positive_loss", positive_loss.item(), step=step)
