@@ -26,6 +26,13 @@ def compute_gibbs_weight(x0, x1, epsilon):
     
     return weights
 
+def get_negative_indices(batch_size, device):
+    """Get negative indices ensuring no self-sampling"""
+    choices = torch.arange(batch_size).repeat(batch_size, 1).to(device)
+    choices = choices[choices != torch.arange(batch_size).unsqueeze(1).to(device)].view(batch_size, -1)
+    idx = torch.randint(0, batch_size-1, (batch_size,), device=device)
+    return choices[torch.arange(batch_size), idx]
+
 def main():
     n_steps = 400000
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -252,7 +259,7 @@ def main():
 
           
             if use_immiscible:
-                k = 4
+                k = 8
                 z_candidates = torch.randn(b, k, image_channels, image_size, image_size, device=x1.device, dtype=x1.dtype)
                 x1_flat = x1.flatten(start_dim=1)  # [b, c*h*w]
                 z_candidates_flat = z_candidates.flatten(start_dim=2)  # [b, k, c*h*w]
@@ -267,11 +274,18 @@ def main():
             u_positive = x1 - (1 - sigma_min) * z 
             
          
+            # if b > 1:
+            #     perm = torch.randperm(b, device=x1.device)
+            #     for i in range(b):
+            #         if perm[i] == i:
+            #             perm[i] = (i + 1) % b
+            #     u_negative = u_positive[perm]
+            # else:
+            #     u_negative = u_positive
+
+
             if b > 1:
-                perm = torch.randperm(b, device=x1.device)
-                for i in range(b):
-                    if perm[i] == i:
-                        perm[i] = (i + 1) % b
+                perm = get_negative_indices(b, device=x1.device)
                 u_negative = u_positive[perm]
             else:
                 u_negative = u_positive
